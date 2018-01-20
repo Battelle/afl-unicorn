@@ -30,13 +30,17 @@ First, build afl as usual. This is pretty simple:
   $ make
 
 Once that completes successfully you need to build and add in the Unicorn Mode 
-features:
+features. The installation process will install Python modules. The first
+installation step will create and load a Python 2 virtualenv so that these
+do not have to be written, as root, to your filesystem.
 
   $ cd unicorn_mode
+  $ virtualenv -p python2 env
+  $ source env/bin/activate
   $ ./build_unicorn_support.sh
 
 NOTE: This script downloads the most recent Unicorn Engine stable release 
-from the Unicorn github page. If you are offline, you'll need to hack up 
+from the Unicorn github repo. If you are offline, you'll need to hack up 
 this script a little bit and supply your own copy of Unicorn's latest stable 
 release. It's not very hard, just check out the beginning of the 
 build_unicorn_support.sh script and adjust as necessary.

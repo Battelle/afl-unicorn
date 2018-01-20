@@ -27,22 +27,12 @@
 # You must make sure that Unicorn Engine is not already installed before
 # running this script. If it is, please uninstall it first.
 
-UNICORN_URL="https://github.com/unicorn-engine/unicorn/archive/1.0.1.tar.gz"
-UNICORN_SHA384="489f2e8d18b6be01f2975f5128c290ca0c6aa3107ac317b9b549786a0946978469683e8fa8b6dfc502f6f71242279b47"
-
 echo "================================================="
 echo "Unicorn-AFL build script"
 echo "================================================="
 echo
 
 echo "[*] Performing basic sanity checks..."
-
-if [ "$(id -u)" != "0" ]; then
-
-   echo "[-] Error: This script must be run as root/sudo" 
-   exit 1
-
-fi
 
 if [ ! "`uname -s`" = "Linux" ]; then
 
@@ -51,7 +41,7 @@ if [ ! "`uname -s`" = "Linux" ]; then
 
 fi
 
-ldconfig -p | grep libunicorn > /dev/null;
+/sbin/ldconfig -p | grep libunicorn > /dev/null;
 if [ $? -eq 0 ]; then
 
   echo -n "[?] Unicorn Engine appears to already be installed on the system. Continuing will overwrite the existing installation. Continue (y/n)?"
@@ -108,45 +98,16 @@ fi
 
 echo "[+] All checks passed!"
 
-ARCHIVE="`basename -- "$UNICORN_URL"`"
+echo "[*] Updating git submodule for unicorn..."
 
-CKSUM=`sha384sum -- "$ARCHIVE" 2>/dev/null | cut -d' ' -f1`
-
-if [ ! "$CKSUM" = "$UNICORN_SHA384" ]; then
-
-  echo "[*] Downloading Unicorn v1.0.1 from the web..."
-  rm -f "$ARCHIVE"
-  sudo -u ${USERNAME} wget -O "$ARCHIVE" -- "$UNICORN_URL" || exit 1
-
-  CKSUM=`sha384sum -- "$ARCHIVE" 2>/dev/null | cut -d' ' -f1`
-
-fi
-
-if [ "$CKSUM" = "$UNICORN_SHA384" ]; then
-
-  echo "[+] Cryptographic signature on $ARCHIVE checks out."
-
-else
-
-  echo "[-] Error: signature mismatch on $ARCHIVE (perhaps download error?)."
-  exit 1
-
-fi
-
-echo "[*] Uncompressing archive (this will take a while)..."
-
-rm -rf "unicorn-1.0.1" || exit 1
-sudo -u ${USERNAME} tar xzf "$ARCHIVE" || exit 1
-
-echo "[+] Unpacking successful."
-
-rm -rf "$ARCHIVE" || exit 1
+git submodule init
+git submodule update
 
 echo "[*] Applying patches..."
 
-sudo -u ${USERNAME} patch -p0 <patches/config.diff || exit 1
-sudo -u ${USERNAME} patch -p0 <patches/cpu-exec.diff || exit 1
-sudo -u ${USERNAME} patch -p0 <patches/translate-all.diff || exit 1
+patch -p0 <patches/config.diff || exit 1
+patch -p0 <patches/cpu-exec.diff || exit 1
+patch -p0 <patches/translate-all.diff || exit 1
 
 echo "[+] Patching done."
 
@@ -161,13 +122,13 @@ echo "[+] Configuration complete."
 
 echo "[*] Attempting to build Unicorn (fingers crossed!)..."
 
-sudo -u ${USERNAME} make || exit 1
+make || exit 1
 
 echo "[+] Build process successful!"
 
 echo "[*] Installing patched unicorn binaries to local system..."
 
-make install || exit 1
+sudo make install || exit 1
 
 echo "[+] Unicorn installed successfully."
 

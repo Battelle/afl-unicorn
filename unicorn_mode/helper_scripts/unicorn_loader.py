@@ -93,7 +93,7 @@ class UnicornSimpleHeap(object):
         total_chunk_size = UNICORN_PAGE_SIZE + ALIGN_PAGE_UP(size) + UNICORN_PAGE_SIZE
         # Gross but efficient way to find space for the chunk:
         chunk = None
-        for addr in xrange(self.HEAP_MIN_ADDR, self.HEAP_MAX_ADDR, UNICORN_PAGE_SIZE):
+        for addr in range(self.HEAP_MIN_ADDR, self.HEAP_MAX_ADDR, UNICORN_PAGE_SIZE):
             try:
                 self._uc.mem_map(addr, total_chunk_size, UC_PROT_READ | UC_PROT_WRITE)
                 chunk = self.HeapChunk(addr, total_chunk_size, size)
@@ -194,10 +194,10 @@ class AflUnicornEngine(Uc):
         self.__load_registers(regs, reg_map, debug_print)
         # If we have extra FLOATING POINT regs, load them in!
         if 'regs_extended' in context:
-		if context['regs_extended']:
-		    regs_extended = context['regs_extended']
-		    reg_map = self.__get_registers_extended(self._arch_str)
-		    self.__load_registers(regs_extended, reg_map, debug_print)
+            if context['regs_extended']:
+                regs_extended = context['regs_extended']
+                reg_map = self.__get_registers_extended(self._arch_str)
+                self.__load_registers(regs_extended, reg_map, debug_print)
 
         # For ARM, sometimes the stack pointer is erased ??? (I think I fixed this (issue with ordering of dumper.py, I'll keep the write anyways)
         if self.__get_arch_and_mode(self.get_arch_str())[0] == UC_ARCH_ARM:
@@ -294,10 +294,10 @@ class AflUnicornEngine(Uc):
     #---- Loader Helper Functions
 
     def __load_registers(self, regs, reg_map, debug_print):
-        for register, value in regs.iteritems():
+        for register, value in regs.items():
             if debug_print:
                 print("Reg {0} = {1}".format(register, value))
-            if not reg_map.has_key(register.lower()):
+            if register.lower() not in reg_map:
                 if debug_print:
                     print("Skipping Reg: {}".format(register))
             else:
@@ -404,7 +404,7 @@ class AflUnicornEngine(Uc):
             else:
                 if debug_print:
                     print("No content found for segment {0} @ {1:016x}".format(name, seg_start))
-                self.mem_write(seg_start, '\x00' * (seg_end - seg_start))
+                self.mem_write(seg_start, b'\x00' * (seg_end - seg_start))
 
     def __get_arch_and_mode(self, arch_str):
         arch_map = {
